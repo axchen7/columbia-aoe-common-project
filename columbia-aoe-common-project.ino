@@ -1,5 +1,8 @@
 #include <Servo.h>
 
+typedef enum { PLAY, P1_WIN, P2_WIN, P1_LOSE, P2_LOSE, RESET } State;
+typedef enum { RED, GREEN } Color;
+
 // ports
 
 int SERVO_1 = 3;
@@ -19,6 +22,13 @@ int LED_G = 13;
 
 // constants
 
+int LOOP_DELAY_MS = 20;
+
+unsigned long RED_DURATION_MS = 2000;
+unsigned long YELLOW_DURATION_MS = 600;
+unsigned long GREEN_DURATION_MIN_MS = 1200;
+unsigned long GREEN_DURATION_MAX_MS = 2500;
+
 int POT_SAMPLE_COUNT = 5;
 float EMA_COEFF = 0.1;
 
@@ -37,6 +47,18 @@ Servo servo1;
 Servo servo2;
 
 // global variables
+
+unsigned long timeMs;
+
+State state;
+unsigned long stateSetMs;
+
+Color color;
+unsigned long colorChangeAtMs;
+
+bool buttonPressed;
+bool beam1;
+bool beam2;
 
 float* pot1Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
 float* pot2Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
@@ -59,21 +81,18 @@ void setup() {
   pinMode(LED_Y, OUTPUT);
   pinMode(LED_G, OUTPUT);
 
-  fillArray(pot1Raws, POT_SAMPLE_COUNT, POT_1_UP);
-  fillArray(pot2Raws, POT_SAMPLE_COUNT, POT_2_UP);
+  resetPotFilter();
 
-  digitalWrite(LED_R, HIGH);
-  digitalWrite(LED_Y, HIGH);
-  digitalWrite(LED_G, HIGH);
+  timeMs = millis();
+
+  setState(PLAY);
+  setColor(RED);
 }
 
 void loop() {
-  // Serial.print("B1: ");
-  // Serial.print(digitalRead(BEAM_1));
-  // Serial.print("\t");
-  // Serial.print("B2: ");
-  // Serial.print(digitalRead(BEAM_2));
-  // Serial.println();
+  buttonPressed = digitalRead(BUTTON) == LOW;
+  beam1 = digitalRead(BEAM_1) == HIGH;
+  beam2 = digitalRead(BEAM_2) == HIGH;
 
   float pot1Value = analogRead(POT_1);
   float pot2Value = analogRead(POT_2);
@@ -90,20 +109,18 @@ void loop() {
   prevPot1Raw = pot1Value;
   prevPot2Raw = pot2Value;
 
-   Serial.print("pot 1: ");
-   Serial.print(pot1Value);
-   Serial.print("\t");
-   Serial.print("pot 2: ");
-   Serial.print(pot2Value);
-   Serial.println();
+  Serial.print("pot 1: ");
+  Serial.print(pot1Value);
+  Serial.print("\t");
+  Serial.print("pot 2: ");
+  Serial.print(pot2Value);
+  Serial.println();
 
   float servo1Power = (pot1Value - POT_1_UP) / (POT_1_DOWN - POT_1_UP);
   float servo2Power = (pot2Value - POT_2_UP) / (POT_2_DOWN - POT_2_UP);
 
   servo1Power = clip(servo1Power, 0, 1);
   servo2Power = clip(servo2Power, 0, 1);
-
-  bool buttonPressed = digitalRead(BUTTON) == LOW;
 
   if (buttonPressed) {
     servo1Power *= -SERVO_BACKWARD_POWER;
@@ -119,7 +136,7 @@ void loop() {
     setServoPower(servo2, servo2Power, false);
   }
 
-  delay(20);
+  delay(LOOP_DELAY_MS);
 }
 
 void setServoPower(Servo servo, float power, bool flip) {
@@ -159,4 +176,75 @@ float closestInArray(float* arr, int len, float val) {
   }
 
   return closest;
+}
+
+void resetPotFilter() {
+  fillArray(pot1Raws, POT_SAMPLE_COUNT, POT_1_UP);
+  fillArray(pot2Raws, POT_SAMPLE_COUNT, POT_2_UP);
+}
+
+void setState(State newState) {
+  state = newState;
+  stateSetMs = timeMs;
+
+  resetPotFilter();
+}
+
+void setColor(Color newColor) {
+  color = newColor;
+
+  if (color == RED) {
+    colorChangeAtMs = timeMs + RED_DURATION_MS;
+  } else {
+    colorChangeAtMs =
+        timeMs + random(GREEN_DURATION_MIN_MS, GREEN_DURATION_MAX_MS);
+  }
+}
+
+void updateState() {
+  if (state != RESET && buttonPressed) {
+    setState(RESET);
+    return;
+  }
+
+  switch (state) {
+    case PLAY:
+      if (!beam1) setState(P1_WIN);
+      if (!beam2) setState(P2_WIN);
+
+      if (color == RED) {
+        if (servo1IsPowered) setState(P1_LOSE);
+        if (servo2IsPowered) setState(P2_LOSE);
+      }
+      break;
+
+    case RESET:
+      if (!buttonPressed) setState(PLAY);
+      break;
+  }
+}
+
+void updateColor() {
+  if (timeMs > colorChangeAtMs) {
+    if (color == RED)
+      setColor(GREEN);
+    else
+      setColor(RED);
+  }
+
+  if (color == RED) {
+    digitalWrite(LED_R, HIGH);
+    digitalWrite(LED_Y, LOW);
+    digitalWrite(LED_G, LOW);
+  } else {
+    digitalWrite(LED_R, LOW);
+
+    if (timeMs > colorChangeAtMs - YELLOW_DURATION_MS) {
+      digitalWrite(LED_Y, HIGH);
+      digitalWrite(LED_G, LOW);
+    } else {
+      digitalWrite(LED_Y, LOW);
+      digitalWrite(LED_G, HIGH);
+    }
+  }
 }
