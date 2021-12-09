@@ -66,6 +66,9 @@ float* pot2Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
 float prevPot1Raw = POT_1_UP;
 float prevPot2Raw = POT_2_UP;
 
+int gameWonColor = 3;
+bool redLightsOn = false;
+
 void setup() {
   Serial.begin(9600);
 
@@ -217,6 +220,87 @@ void updateState() {
         if (servo2IsPowered) setState(P2_LOSE);
       }
       break;
+    case P1_WIN:
+      // remove the power from P2
+      setServoPower(servo2, servo2Power, false);
+    
+      // check if we pressed the button to trigger RESET
+      bool flag = false;
+      int initialTimeOfColorSwitch = millis();
+      const int timeToSwitch = 2000;
+      
+      do {
+        buttonPressed = digitalRead(BUTTON) == LOW;
+        if(buttonPressed) {
+          flag = true;
+          setState(RESET);
+          break;
+        }
+      } while( millis() - initialTimeOfColorSwitch <= timeToSwitch );
+
+      gameWonColor = getNextWinningColor(gameWonColor);
+      gameWonLigths(gameWonColor);
+
+    case P2_WIN:
+      // remove the power from P1
+      setServoPower(servo1, servo1Power, false);
+    
+      // check if we pressed the button to trigger RESET
+      bool flag = false;
+      int initialTimeOfColorSwitch = millis();
+      const int timeToSwitch = 2000;
+      
+      do {
+        buttonPressed = digitalRead(BUTTON) == LOW;
+        if(buttonPressed) {
+          flag = true;
+          setState(RESET);
+          break;
+        }
+      } while( millis() - initialTimeOfColorSwitch <= timeToSwitch );
+      
+      gameWonColor = getNextWinningColor(gameWonColor);
+      gameWonLigths(gameWonColor);
+
+    case P1_LOSE:
+      // remove the power from P1 & P2
+      setServoPower(servo1, servo1Power, false);
+      setServoPower(servo2, servo2Power, false);
+    
+      // check if we pressed the button to trigger RESET
+      bool flag = false;
+      int initialTimeOfColorSwitch = millis();
+      const int timeToSwitch = 2000;
+      
+      do {
+        buttonPressed = digitalRead(BUTTON) == LOW;
+        if(buttonPressed) {
+          flag = true;
+          setState(RESET);
+          break;
+        }
+      } while( millis() - initialTimeOfColorSwitch <= timeToSwitch );
+      gameLostLights(redLightsOn);
+
+      case P2_LOSE:
+      // remove the power from P1 & P2
+      setServoPower(servo1, servo1Power, false);
+      setServoPower(servo2, servo2Power, false);
+    
+      // check if we pressed the button to trigger RESET
+      bool flag = false;
+      int initialTimeOfColorSwitch = millis();
+      const int timeToSwitch = 2000;
+      
+      do {
+        buttonPressed = digitalRead(BUTTON) == LOW;
+        if(buttonPressed) {
+          flag = true;
+          setState(RESET);
+          break;
+        }
+      } while( millis() - initialTimeOfColorSwitch <= timeToSwitch );
+      gameLostLights(redLightsOn);
 
     case RESET:
       if (!buttonPressed) setState(PLAY);
@@ -247,4 +331,56 @@ void updateColor() {
       digitalWrite(LED_G, HIGH);
     }
   }
+}
+
+void gameWonLigths(currentColor) {
+    switch (currentColor) {
+    case 1:
+      digitalWrite(LED_G, HIGH);
+      digitalWrite(LED_Y, LOW);
+      digitalWrite(LED_R, LOW);
+      break;
+    case 2:
+      digitalWrite(LED_G, LOW);
+      digitalWrite(LED_Y, HIGH);
+      digitalWrite(LED_R, LOW);
+      break;
+    case 3:
+      digitalWrite(LED_G, LOW);
+      digitalWrite(LED_Y, LOW);
+      digitalWrite(LED_R, HIGH);
+      break;
+    default:
+      break;
+  }
+}
+
+int getNextWinningColor(int currentWinningColor) {
+  int nextWinningColor = 1;
+  
+  switch(currentWinningColor) {
+    case 1:
+      nextWinningColor = 2;
+      break;
+    case 2:
+      nextWinningColor = 3;
+      break;
+    case 3:
+      nextWinningColor = 1;
+      break;
+    default:
+      nextWinningColor = 2;
+      break;
+  }
+}
+
+void gameLostLights(redLightsOn) {
+  digitalWrite(LED_G, LOW);
+  digitalWrite(LED_Y, LOW);
+  
+    if(redLightsOn) {
+    digitalWrite(LED_R, LOW);
+    return;
+  }
+  digitalWrite(LED_R, HIGH);
 }
