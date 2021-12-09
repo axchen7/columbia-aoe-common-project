@@ -19,18 +19,17 @@ int LED_G = 13;
 
 // constants
 
-int POT_SAMPLE_COUNT = 8;
+int POT_SAMPLE_COUNT = 5;
+float EMA_COEFF = 0.1;
 
 float POT_1_UP = 593;
 float POT_1_DOWN = 520;
 
-float POT_2_UP = 428;
+float POT_2_UP = 435;
 float POT_2_DOWN = 510;
 
 float SERVO_FORWARD_POWER = 0.3;
 float SERVO_BACKWARD_POWER = 0.3;
-
-float DECEL_POWER_PER_SEC = SERVO_FORWARD_POWER * 1.0;
 
 // servos
 
@@ -41,6 +40,9 @@ Servo servo2;
 
 float* pot1Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
 float* pot2Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
+
+float prevPot1Raw = POT_1_UP;
+float prevPot2Raw = POT_2_UP;
 
 void setup() {
   Serial.begin(9600);
@@ -82,6 +84,12 @@ void loop() {
   pot1Value = closestInArray(pot1Raws, POT_SAMPLE_COUNT, POT_1_UP);
   pot2Value = closestInArray(pot2Raws, POT_SAMPLE_COUNT, POT_2_UP);
 
+  pot1Value = pot1Value * EMA_COEFF + (1 - EMA_COEFF) * prevPot1Raw;
+  pot2Value = pot2Value * EMA_COEFF + (1 - EMA_COEFF) * prevPot2Raw;
+
+  prevPot1Raw = pot1Value;
+  prevPot2Raw = pot2Value;
+
   // Serial.print("pot 1: ");
   // Serial.print(pot1Value);
   // Serial.print("\t");
@@ -116,7 +124,6 @@ void loop() {
 
 void setServoPower(Servo servo, float power, bool flip) {
   servo.write(90 + power * (flip ? -90 : 90));
-  // servo.write(90);
 }
 
 float clip(float power, float low, float high) {
