@@ -39,8 +39,8 @@ Servo servo2;
 
 // global variables
 
-float* pot1Raws = (float*) calloc(POT_SAMPLE_COUNT, sizeof(float));
-float* pot2Raws = (float*) calloc(POT_SAMPLE_COUNT, sizeof(float));
+float* pot1Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
+float* pot2Raws = (float*)calloc(POT_SAMPLE_COUNT, sizeof(float));
 
 void setup() {
   Serial.begin(9600);
@@ -82,12 +82,12 @@ void loop() {
   pot1Value = closestInArray(pot1Raws, POT_SAMPLE_COUNT, POT_1_UP);
   pot2Value = closestInArray(pot2Raws, POT_SAMPLE_COUNT, POT_2_UP);
 
-  //  Serial.print("pot 1: ");
-  //  Serial.print(pot1Value);
-  //  Serial.print("\t");
-  //  Serial.print("pot 2: ");
-  //  Serial.print(pot2Value);
-  //  Serial.println();
+  // Serial.print("pot 1: ");
+  // Serial.print(pot1Value);
+  // Serial.print("\t");
+  // Serial.print("pot 2: ");
+  // Serial.print(pot2Value);
+  // Serial.println();
 
   float servo1Power = (pot1Value - POT_1_UP) / (POT_1_DOWN - POT_1_UP);
   float servo2Power = (pot2Value - POT_2_UP) / (POT_2_DOWN - POT_2_UP);
@@ -116,7 +116,7 @@ void loop() {
 
 void setServoPower(Servo servo, float power, bool flip) {
   servo.write(90 + power * (flip ? -90 : 90));
-  //servo.write(90);
+  // servo.write(90);
 }
 
 float clip(float power, float low, float high) {
