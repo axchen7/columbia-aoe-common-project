@@ -1,0 +1,4 @@
+{
+    "sketch": "columbia-aoe-common-project.ino",
+    "board": "arduino:avr:uno"
+}
