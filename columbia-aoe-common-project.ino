@@ -22,11 +22,11 @@ int LED_G = 13;
 int POT_SAMPLE_COUNT = 5;
 float EMA_COEFF = 0.1;
 
-float POT_1_UP = 593;
-float POT_1_DOWN = 520;
+float POT_1_UP = 596;
+float POT_1_DOWN = 533;
 
-float POT_2_UP = 435;
-float POT_2_DOWN = 510;
+float POT_2_UP = 436;
+float POT_2_DOWN = 517;
 
 float SERVO_FORWARD_POWER = 0.3;
 float SERVO_BACKWARD_POWER = 0.3;
@@ -68,12 +68,12 @@ void setup() {
 }
 
 void loop() {
-  Serial.print("B1: ");
-  Serial.print(digitalRead(BEAM_1));
-  Serial.print("\t");
-  Serial.print("B2: ");
-  Serial.print(digitalRead(BEAM_2));
-  Serial.println();
+  // Serial.print("B1: ");
+  // Serial.print(digitalRead(BEAM_1));
+  // Serial.print("\t");
+  // Serial.print("B2: ");
+  // Serial.print(digitalRead(BEAM_2));
+  // Serial.println();
 
   float pot1Value = analogRead(POT_1);
   float pot2Value = analogRead(POT_2);
@@ -90,12 +90,12 @@ void loop() {
   prevPot1Raw = pot1Value;
   prevPot2Raw = pot2Value;
 
-  // Serial.print("pot 1: ");
-  // Serial.print(pot1Value);
-  // Serial.print("\t");
-  // Serial.print("pot 2: ");
-  // Serial.print(pot2Value);
-  // Serial.println();
+   Serial.print("pot 1: ");
+   Serial.print(pot1Value);
+   Serial.print("\t");
+   Serial.print("pot 2: ");
+   Serial.print(pot2Value);
+   Serial.println();
 
   float servo1Power = (pot1Value - POT_1_UP) / (POT_1_DOWN - POT_1_UP);
   float servo2Power = (pot2Value - POT_2_UP) / (POT_2_DOWN - POT_2_UP);
