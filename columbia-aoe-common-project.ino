@@ -25,9 +25,9 @@ int LED_G = 13;
 int LOOP_DELAY_MS = 20;
 
 unsigned long RED_DURATION_MS = 1500;
-unsigned long YELLOW_DURATION_MS = 400;
+unsigned long YELLOW_DURATION_MS = 500;
 unsigned long GREEN_DURATION_MIN_MS = 1200;
-unsigned long GREEN_DURATION_MAX_MS = 2000;
+unsigned long GREEN_DURATION_MAX_MS = 2500;
 
 unsigned long LED_CYCLE_DURATION_MS = 300;
 unsigned long LED_BLINK_DURATION_MS = 600;
@@ -40,10 +40,10 @@ int BEAM_SAMPLE_COUNT = 3;
 float EMA_COEFF = 0.1;
 float SERVO_STILL_THRESH = 0.1;
 
-float POT_1_UP = 596;
+float POT_1_UP = 591;
 float POT_1_DOWN = 533;
 
-float POT_2_UP = 436;
+float POT_2_UP = 441;
 float POT_2_DOWN = 517;
 
 float SERVO_PLAYER_FORWARD_POWER = 0.15;
